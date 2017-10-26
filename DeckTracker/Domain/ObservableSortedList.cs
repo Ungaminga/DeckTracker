@@ -112,8 +112,8 @@ namespace DeckTracker.Domain
 
         /// <summary>Gets the item at the specified index. Does not support setting.</summary>
         public T this[int index] {
-            get => list[index];
-            set => throw new InvalidOperationException("Cannot set an item at an arbitrary index in a ObservableSortedList.");
+            get { return list[index]; }
+            set { throw new InvalidOperationException("Cannot set an item at an arbitrary index in a ObservableSortedList."); }
         }
 
         /// <summary>

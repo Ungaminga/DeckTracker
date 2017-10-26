@@ -119,6 +119,18 @@ namespace DeckTracker.Domain
             return collectionJson == null ? null : JsonConvert.DeserializeObject<Dictionary<string, int>>(collectionJson);
         }
 
+        static bool CheckCardNumber(IReadOnlyDictionary<int, object> attrs, int? cardNumber, int? cardSet, GameType gameType)
+        {
+            return cardNumber != null && cardNumber == GetCardNumber(gameType, attrs) &&
+                    cardSet == int.Parse(attrs[gameType == GameType.Eternal ? (int)Eternal.Attribute.SetNumber : (int)TheElderScrollsLegends.Attribute.SetNumber].ToString());
+        }
+        static bool CheckCardType(IReadOnlyDictionary<int, object> attrs, int rarityAttributeId, int cardTypeAttributeId, GameType gameType)
+        {
+            object rarity, cardType;
+            return (attrs.TryGetValue(rarityAttributeId, out rarity) && (string)rarity != "Special" || attrs.TryGetValue(cardTypeAttributeId, out cardType) && (string)cardType == "Power") &&
+                    (gameType != GameType.TheElderScrollsLegends || !(bool)attrs[(int)TheElderScrollsLegends.Attribute.HydraHiddenFromDeckbuilder]);
+
+        }
         public static bool ImportDeck(GameType gameType, string deck)
         {
             var collection = GetCollection(gameType);
@@ -142,9 +154,11 @@ namespace DeckTracker.Domain
                 string cardName = line.Substring(firstSpace, (paren1 < 0 ? line.Length : paren1) - firstSpace).Trim();
                 int? cardSet = null, cardNumber = null;
                 if (hash > 0 && paren2 > 0) {
-                    if (!int.TryParse(line.Substring(paren1 + 4, hash - paren1 - 5).Trim(), out int parsedCardSet)) throw new Exception($"Invalid line format: {line}");
+                    int parsedCardSet;
+                    if (!int.TryParse(line.Substring(paren1 + 4, hash - paren1 - 5).Trim(), out parsedCardSet)) throw new Exception($"Invalid line format: {line}");
                     cardSet = parsedCardSet;
-                    if (!int.TryParse(line.Substring(hash + 1, paren2 - hash - 1).Trim(), out int parsedCardNumber)) throw new Exception($"Invalid line format: {line}");
+                    int parsedCardNumber;
+                    if (!int.TryParse(line.Substring(hash + 1, paren2 - hash - 1).Trim(), out parsedCardNumber)) throw new Exception($"Invalid line format: {line}");
                     cardNumber = parsedCardNumber;
                 }
 
@@ -153,16 +167,9 @@ namespace DeckTracker.Domain
                 int rarityAttributeId = gameType == GameType.Eternal ? (int)Eternal.Attribute.Rarity : (int)TheElderScrollsLegends.Attribute.HydraRarity;
                 int cardTypeAttributeId = gameType == GameType.Eternal ? (int)Eternal.Attribute.CardType : (int)TheElderScrollsLegends.Attribute.HydraCardType;
 
-                bool CheckCardNumber(IReadOnlyDictionary<int, object> attrs) => cardNumber != null && cardNumber == GetCardNumber(gameType, attrs) &&
-                    cardSet == int.Parse(attrs[gameType == GameType.Eternal ? (int)Eternal.Attribute.SetNumber : (int)TheElderScrollsLegends.Attribute.SetNumber].ToString());
-
-                bool CheckCardType(IReadOnlyDictionary<int, object> attrs) =>
-                    (attrs.TryGetValue(rarityAttributeId, out var rarity) && (string)rarity != "Special" || attrs.TryGetValue(cardTypeAttributeId, out var cardType) && (string)cardType == "Power") &&
-                    (gameType != GameType.TheElderScrollsLegends || !(bool)attrs[(int)TheElderScrollsLegends.Attribute.HydraHiddenFromDeckbuilder]);
-
-                var matchingNames = allArchetypes[gameType].Where(a => CheckCardNumber(a.Value) || a.Value.ContainsKey(nameAttributeId) && a.Value[nameAttributeId].ToString() == cardName).ToList();
-                string baseArchetypeId = matchingNames.Where(a => CheckCardType(a.Value) && !(a.Value.ContainsKey(isPremiumAttributeId) && (bool)a.Value[isPremiumAttributeId])).Select(entry => entry.Key).FirstOrDefault();
-                string premiumArchetypeId = matchingNames.Where(a => CheckCardType(a.Value) && a.Value.ContainsKey(isPremiumAttributeId) && (bool)a.Value[isPremiumAttributeId]).Select(entry => entry.Key).FirstOrDefault();
+                var matchingNames = allArchetypes[gameType].Where(a => CheckCardNumber(a.Value, cardNumber, cardSet, gameType) || a.Value.ContainsKey(nameAttributeId) && a.Value[nameAttributeId].ToString() == cardName).ToList();
+                string baseArchetypeId = matchingNames.Where(a => CheckCardType(a.Value, rarityAttributeId, cardTypeAttributeId, gameType) && !(a.Value.ContainsKey(isPremiumAttributeId) && (bool)a.Value[isPremiumAttributeId])).Select(entry => entry.Key).FirstOrDefault();
+                string premiumArchetypeId = matchingNames.Where(a => CheckCardType(a.Value, rarityAttributeId, cardTypeAttributeId, gameType) && a.Value.ContainsKey(isPremiumAttributeId) && (bool)a.Value[isPremiumAttributeId]).Select(entry => entry.Key).FirstOrDefault();
                 if (baseArchetypeId == null) throw new Exception($"Unknown card name: {cardName}");
 
                 if (gameType == GameType.TheElderScrollsLegends && allArchetypes[gameType][baseArchetypeId].ContainsKey((int)TheElderScrollsLegends.Attribute.HydraColorList))

@@ -101,7 +101,8 @@ namespace DeckTracker.LowLevel
                 bool sent = false;
                 while (socketThread != null && !token.IsCancellationRequested) {
                     if (!sent) sent = SendMessage(message);
-                    if (responses.TryRemove(id, out string response))
+                    string response;
+                    if (responses.TryRemove(id, out response))
                         return response;
                     Thread.Sleep(10);
                 }

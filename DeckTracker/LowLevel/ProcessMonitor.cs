@@ -135,7 +135,8 @@ namespace DeckTracker.LowLevel
                         }
                         Logger.LogDebug(state.GameType, $"Injecting DeckTracker.InGame.Helper.dll, attempt #{state.InjectionAttempt}");
                         string injectionLibrary = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DeckTracker.InGame.Helper.dll");
-                        state.InjectionState = DllInjector.InjectDll(state.GameType, (uint)state.Process.Id, injectionLibrary, out int _) ? InjectionState.Injected : InjectionState.Failed;
+                        int errorCode;
+                        state.InjectionState = DllInjector.InjectDll(state.GameType, (uint)state.Process.Id, injectionLibrary, out errorCode) ? InjectionState.Injected : InjectionState.Failed;
                         if (state.InjectionState == InjectionState.Injected) {
                             Logger.LogDebug(state.GameType, "Injected DeckTracker.InGame.Helper.dll, waiting for response");
                             if (SendCommand(state.GameType, CommandType.Ping, 10000) != "Pong")

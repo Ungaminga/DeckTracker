@@ -12,7 +12,8 @@ namespace DeckTracker.LowLevel
         private static void DispatchThreadImpl()
         {
             while (true) {
-                if (!DispatchQueue.TryDequeue(out GameMessage entry)) {
+                GameMessage entry;
+                if (!DispatchQueue.TryDequeue(out entry)) {
                     Thread.Sleep(10);
                     continue;
                 }

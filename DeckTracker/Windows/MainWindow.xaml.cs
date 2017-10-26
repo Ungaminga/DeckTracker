@@ -365,7 +365,8 @@ namespace DeckTracker.Windows
                 var collection = ArchetypeManager.GetCollection(game.Value);
                 if (collection != null) {
                     string export = ArchetypeManager.GetExportedDeck(game.Value, collection);
-                    if (WindowsHelper.TryCopyToClipboard(export, out string blockingWindowText))
+                    string blockingWindowText;
+                    if (WindowsHelper.TryCopyToClipboard(export, out blockingWindowText))
                         MessageBox.Show("Collection exported to clipboard", "Success");
                     else
                         MessageBox.Show(blockingWindowText != null ? $"Unable to access clipboard.\nPlease close this window: {blockingWindowText}" : "Unable to access clipboard.", "Error");
@@ -410,7 +411,8 @@ namespace DeckTracker.Windows
                 var export = new StringBuilder();
                 export.AppendLine($"### {deck.Name} ###");
                 export.Append(ArchetypeManager.GetExportedDeck(deck.GameType, deck.Cards));
-                if (WindowsHelper.TryCopyToClipboard(export.ToString(), out string blockingWindowText))
+                string blockingWindowText;
+                if (WindowsHelper.TryCopyToClipboard(export.ToString(), out blockingWindowText))
                     MessageBox.Show("Last played deck has been exported to clipboard", "Success");
                 else
                     MessageBox.Show(blockingWindowText != null ? $"Unable to access clipboard.\nPlease close this window: {blockingWindowText}" : "Unable to access clipboard.", "Error");
@@ -434,7 +436,8 @@ namespace DeckTracker.Windows
                     export.Append(ArchetypeManager.GetExportedDeck(game.GameType, game.OpponentDeck.Cards));
                     count++;
                 }
-                if (WindowsHelper.TryCopyToClipboard(export.ToString(), out string blockingWindowText))
+                string blockingWindowText;
+                if (WindowsHelper.TryCopyToClipboard(export.ToString(), out blockingWindowText))
                     MessageBox.Show($"{count} opponent decks have been exported to clipboard", "Success");
                 else
                     MessageBox.Show(blockingWindowText != null ? $"Unable to access clipboard.\nPlease close this window: {blockingWindowText}" : "Unable to access clipboard.", "Error");
@@ -452,7 +455,8 @@ namespace DeckTracker.Windows
             var game = ProcessMonitor.RunningGameType;
             if (deckList == null || !game.HasValue) return;
             try {
-                bool isUrl = Uri.TryCreate(deckList, UriKind.Absolute, out Uri uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+                Uri uriResult;
+                bool isUrl = Uri.TryCreate(deckList, UriKind.Absolute, out uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
                 if (isUrl) {
                     deckList = ArchetypeManager.DownloadDeck(deckList);
                     if (deckList == null) {

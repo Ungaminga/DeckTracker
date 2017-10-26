@@ -511,7 +511,8 @@ namespace DeckTracker.LowLevel
                 var hKernel32 = (IntPtr)ret;
 
                 // Retrieving the dos header of our Kernel32 library module inside of the process indicated by hProcess
-                if (!ReadProcessMemory(hProcess, hKernel32, out IMAGE_DOS_HEADER dosHeader, IMAGE_DOS_HEADER.SizeOf, IntPtr.Zero)) {
+                IMAGE_DOS_HEADER dosHeader;
+                if (!ReadProcessMemory(hProcess, hKernel32, out dosHeader, IMAGE_DOS_HEADER.SizeOf, IntPtr.Zero)) {
                     errorCode = Marshal.GetLastWin32Error();
                     Logger.LogDebug(gameType, $"ReadProcessMemory failed with error {errorCode}");
                     return null;
@@ -587,7 +588,8 @@ namespace DeckTracker.LowLevel
 
                 var pExportsPtr = new IntPtr(entryExport.VirtualAddress + hKernel32.ToInt32());
 
-                if (!ReadProcessMemory(hProcess, pExportsPtr, out IMAGE_EXPORT_DIRECTORY pExports, IMAGE_EXPORT_DIRECTORY.SizeOf, IntPtr.Zero)) {
+                IMAGE_EXPORT_DIRECTORY pExports;
+                if (!ReadProcessMemory(hProcess, pExportsPtr, out pExports, IMAGE_EXPORT_DIRECTORY.SizeOf, IntPtr.Zero)) {
                     errorCode = Marshal.GetLastWin32Error();
                     Logger.LogDebug(gameType, $"ReadProcessMemory failed with error {errorCode}");
                     return null;
@@ -697,12 +699,13 @@ namespace DeckTracker.LowLevel
                 }
 
                 // write dll file path argument into remote process's memory space
+                IntPtr bytesWritten;
                 bool isSucceeded = WriteProcessMemory(
                     hProcess,
                     hDllPathArg,
                     Encoding.Unicode.GetBytes(dllPath),
                     (dllPath.Length + 1) * 2,
-                    out var bytesWritten
+                    out bytesWritten
                 );
 
                 // Error checking
@@ -713,7 +716,8 @@ namespace DeckTracker.LowLevel
                 }
 
                 // invoke the LoadLibrary method in the remote process.
-                hRemoteThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0, hLoadLibrary, hDllPathArg, 0, out var dwThreadId);
+                IntPtr dwThreadId;
+                hRemoteThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0, hLoadLibrary, hDllPathArg, 0, out dwThreadId);
 
                 // Error checking
                 if (hRemoteThread == IntPtr.Zero) {

@@ -160,7 +160,8 @@ namespace DeckTracker.LowLevel
         {
             var hWindow = GetOpenClipboardWindow();
             if (hWindow == IntPtr.Zero) return null;
-            GetWindowThreadProcessId(hWindow, out int processId);
+            int processId;
+            GetWindowThreadProcessId(hWindow, out processId);
             var process = Process.GetProcessById(processId);
             return process.MainWindowTitle;
         }

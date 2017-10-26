@@ -86,8 +86,8 @@ namespace DeckTracker.Domain
         public ICollection<TValue> Values => Dictionary.Values;
 
         public TValue this[TKey key] {
-            get => Dictionary[key];
-            set => Insert(key, value, false);
+            get { return Dictionary[key]; }
+            set { Insert(key, value, false); }
         }
 
         #endregion
@@ -180,7 +180,8 @@ namespace DeckTracker.Domain
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
 
-            if (Dictionary.TryGetValue(key, out var item)) {
+            TValue item;
+            if (Dictionary.TryGetValue(key, out item)) {
                 if (add) throw new ArgumentException("An item with the same key has already been added.");
                 if (Equals(item, value)) return;
                 Dictionary[key] = value;

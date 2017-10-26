@@ -20,7 +20,8 @@ namespace DeckTracker
                 Logger.DebugMode = true;
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
 
-            mutex = new Mutex(true, "Local\\DeckTracker", out bool isNew);
+            bool isNew;
+            mutex = new Mutex(true, "Local\\DeckTracker", out isNew);
             if (!isNew) {
                 MessageBox.Show("Universal Deck Tracker is already running...");
                 Shutdown();

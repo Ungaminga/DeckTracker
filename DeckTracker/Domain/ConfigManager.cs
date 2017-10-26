@@ -21,7 +21,8 @@ namespace DeckTracker.Domain
         private static void OnGameInjectionStateChange(GameType gameType, InjectionState injectionState)
         {
             if (injectionState != InjectionState.Injected) return;
-            if (!config.TryGetValue(gameType.ToString(), out var subConfig))
+            Dictionary<string, object> subConfig;
+            if (!config.TryGetValue(gameType.ToString(), out subConfig))
                 subConfig = new Dictionary<string, object>();
 #if DEBUG
             subConfig["debug"] = true;

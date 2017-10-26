@@ -380,7 +380,8 @@ namespace DeckTracker.Domain.TheElderScrollsLegends
         {
             if (!attrs.ContainsKey((int)Attribute.CardImage)) return null;
             var matches = CardNumberRegex.Match((string)attrs[(int)Attribute.CardImage]).Groups;
-            return int.TryParse(matches[1].Value + matches[2].Value, out int result) ? result : (int?)null;
+            int result;
+            return int.TryParse(matches[1].Value + matches[2].Value, out result) ? result : (int?)null;
         }
     }
 }

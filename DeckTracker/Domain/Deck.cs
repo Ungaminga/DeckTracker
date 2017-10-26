@@ -11,7 +11,7 @@ namespace DeckTracker.Domain
     {
         private readonly Func<TContainer, TField> accessor;
 
-        public FieldComparer(Func<TContainer, TField> accessor) => this.accessor = accessor;
+        public FieldComparer(Func<TContainer, TField> accessor) { this.accessor = accessor; }
 
         public int Compare(TContainer x, TContainer y)
         {
